@@ -1,0 +1,14 @@
+{
+    "proyecto": "Analizador JSON",
+    "integrantes": [
+        "Ignacio",
+        "Roberto",
+        "Claudia"
+    ],
+    "herramientas": {
+        "lexico": "Flex",
+        "sintactico": "Bison"
+    }
+    "semestre": 7,
+    "estado": "en progreso"
+}

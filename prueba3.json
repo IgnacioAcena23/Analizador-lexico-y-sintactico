@@ -1,0 +1,26 @@
+{
+    "universidad": "Universidad Jose Antonio Paez",
+    "facultad": {
+        "nombre": "Ingenieria",
+        "escuela": "Computacion",
+        "materias": [
+            {
+                "sigla": "TRD",
+                "nombre": "Traductores",
+                "unidades": 4
+            },
+            {
+                "sigla": "SSO",
+                "nombre": 'Sistemas Operativos',
+                "detalles": {
+                    "laboratorio": true,
+                    "proyectos": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            }
+        ]
+    }
+}
