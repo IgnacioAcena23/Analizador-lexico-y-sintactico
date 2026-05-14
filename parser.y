@@ -12,11 +12,9 @@ void yyerror(const char *s);
 FILE *json_log;
 int first_token = 1;
 
-/* line = línea capturada en el momento exacto del lexer (no del reduce) */
 void log_token_json(int line, const char* categoria, const char* token_name, const char* lexema) {
     if (!first_token) fprintf(json_log, ",\n");
 
-    /* Escapar comillas y backslashes del lexema para JSON válido */
     char escaped[1024];
     int j = 0;
     for (int i = 0; lexema[i] && j < 1020; i++) {
@@ -106,7 +104,6 @@ void yyerror(const char *s) {
     }
     err_lex[j] = '\0';
 
-    /* Escapar mensaje de Bison para JSON válido */
     char err_msg[512];
     j = 0;
     for (int i = 0; s[i] && j < 500; i++) {
@@ -122,7 +119,6 @@ void yyerror(const char *s) {
     had_error = 1;
 }
 
-/* Mapea el código de token devuelto por yylex a su nombre legible */
 const char* token_to_name(int tok) {
     switch(tok) {
         case LBRACE:     return "LBRACE";
@@ -162,12 +158,10 @@ int main(int argc, char **argv) {
     yyin = f;
     yyparse();
 
-    /* Si hubo error, seguir leyendo el resto del archivo con el lexer
-       para que los tokens restantes se registren como "unprocessed" (gris en la web) */
     if (had_error) {
         int tok;
         while ((tok = yylex()) != 0) {
-            if (tok < 0) continue; /* Saltar caracteres no reconocidos */
+            if (tok < 0) continue;
             log_token_json(yylineno, "unprocessed", token_to_name(tok), yytext);
         }
     }

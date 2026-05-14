@@ -1,38 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analizador JSON — Reporte de Tokens</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --bg:        #0d1117;
-            --surface:   #161b22;
-            --surface2:  #21262d;
-            --border:    #30363d;
-            --text:      #e6edf3;
-            --muted:     #7d8590;
-            --accent:    #58a6ff;
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #7d8590;
+            --accent: #58a6ff;
 
-            --ok-bg:     #0d2818;
+            --ok-bg: #0d2818;
             --ok-border: #238636;
-            --ok-text:   #3fb950;
+            --ok-text: #3fb950;
 
-            --struct-bg:     #1a1a0d;
+            --struct-bg: #1a1a0d;
             --struct-border: #9e6a03;
-            --struct-text:   #e3b341;
+            --struct-text: #e3b341;
 
-            --err-bg:     #2d0f14;
+            --err-bg: #2d0f14;
             --err-border: #da3633;
-            --err-text:   #ff7b72;
+            --err-text: #ff7b72;
 
-            --gray-bg:    #1a1a1a;
-            --gray-border:#444;
-            --gray-text:  #555;
+            --gray-bg: #1a1a1a;
+            --gray-border: #444;
+            --gray-text: #555;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: var(--bg);
@@ -46,6 +53,7 @@
             text-align: center;
             margin-bottom: 40px;
         }
+
         header h1 {
             font-size: 2rem;
             font-weight: 700;
@@ -55,6 +63,7 @@
             background-clip: text;
             margin-bottom: 8px;
         }
+
         header p {
             color: var(--muted);
             font-size: 0.95rem;
@@ -80,14 +89,24 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        button:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
         #speed-label {
             color: var(--muted);
             font-size: 0.85rem;
             align-self: center;
         }
+
         #speed {
             accent-color: var(--accent);
             width: 100px;
@@ -103,9 +122,18 @@
             height: 20px;
             transition: color 0.3s;
         }
-        #status-bar.running { color: var(--accent); }
-        #status-bar.done-ok { color: var(--ok-text); }
-        #status-bar.done-err { color: var(--err-text); }
+
+        #status-bar.running {
+            color: var(--accent);
+        }
+
+        #status-bar.done-ok {
+            color: var(--ok-text);
+        }
+
+        #status-bar.done-err {
+            color: var(--err-text);
+        }
 
         #visualizador {
             max-width: 960px;
@@ -122,6 +150,7 @@
             gap: 12px;
             padding: 4px 0;
         }
+
         .line-num {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.78rem;
@@ -134,6 +163,7 @@
             padding-right: 10px;
             flex-shrink: 0;
         }
+
         .line-tokens {
             display: flex;
             flex-wrap: wrap;
@@ -141,7 +171,6 @@
             flex: 1;
         }
 
-        /* ── Token chip ── */
         .token-chip {
             display: inline-flex;
             flex-direction: column;
@@ -157,6 +186,7 @@
             transition: opacity 0.25s ease, transform 0.25s ease;
             cursor: default;
         }
+
         .token-chip.visible {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -167,41 +197,51 @@
             font-size: 0.72rem;
             letter-spacing: 0.04em;
         }
+
         .token-chip .chip-lexema {
             font-size: 0.7rem;
             opacity: 0.75;
             font-weight: 400;
         }
 
-        /* categories */
         .chip-processed {
             background: var(--ok-bg);
             border-color: var(--ok-border);
             color: var(--ok-text);
         }
+
         .chip-structural {
             background: var(--struct-bg);
             border-color: var(--struct-border);
             color: var(--struct-text);
         }
+
         .chip-error {
             background: var(--err-bg);
             border-color: var(--err-border);
             color: var(--err-text);
             animation: pulse-error 0.8s ease 2;
         }
-        .chip-gray, .chip-unprocessed {
+
+        .chip-gray,
+        .chip-unprocessed {
             background: var(--gray-bg);
             border-color: var(--gray-border);
             color: var(--gray-text);
         }
 
         @keyframes pulse-error {
-            0%,100% { box-shadow: none; }
-            50%      { box-shadow: 0 0 12px 3px rgba(218,54,51,0.6); }
+
+            0%,
+            100% {
+                box-shadow: none;
+            }
+
+            50% {
+                box-shadow: 0 0 12px 3px rgba(218, 54, 51, 0.6);
+            }
         }
 
-        /* ── Error banner ── */
         .error-banner {
             max-width: 960px;
             margin: 12px auto 0;
@@ -219,10 +259,16 @@
             transform: translateY(6px);
             transition: opacity 0.3s, transform 0.3s;
         }
-        .error-banner.visible { opacity: 1; transform: none; }
-        .error-banner .icon { font-size: 1.3rem; }
 
-        /* ── Legend ── */
+        .error-banner.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        .error-banner .icon {
+            font-size: 1.3rem;
+        }
+
         .legend {
             max-width: 960px;
             margin: 0 auto 24px;
@@ -232,18 +278,30 @@
             font-size: 0.8rem;
             color: var(--muted);
         }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .legend-dot {
-            width: 10px; height: 10px;
+            width: 10px;
+            height: 10px;
             border-radius: 3px;
             border: 1px solid;
         }
 
-        /* ── Scanning pulse on button ── */
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .spinner {
             display: inline-block;
-            width: 14px; height: 14px;
+            width: 14px;
+            height: 14px;
             border: 2px solid transparent;
             border-top-color: currentColor;
             border-radius: 50%;
@@ -253,226 +311,217 @@
         }
     </style>
 </head>
+
 <body>
 
-<header>
-    <h1>Analizador Léxico / Sintáctico — JSON</h1>
-    <p>Visualización animada de tokens generados por Flex &amp; Bison</p>
-</header>
+    <header>
+        <h1>Analizador Léxico / Sintáctico — JSON</h1>
+        <p>Visualización animada de tokens generados por Flex &amp; Bison</p>
+    </header>
 
-<div class="controls">
-    <button id="btn-load" onclick="iniciarAnalisis()">▶ Cargar y Analizar</button>
-    <button id="btn-reset" onclick="resetVista()" disabled>↺ Reiniciar</button>
-    <span id="speed-label">Velocidad:</span>
-    <input id="speed" type="range" min="1" max="10" value="5" title="Velocidad de animación">
-</div>
+    <div class="controls">
+        <button id="btn-load" onclick="iniciarAnalisis()">▶ Cargar y Analizar</button>
+        <button id="btn-reset" onclick="resetVista()" disabled>↺ Reiniciar</button>
+        <span id="speed-label">Velocidad:</span>
+        <input id="speed" type="range" min="1" max="10" value="5" title="Velocidad de animación">
+    </div>
 
-<div id="status-bar">Listo — pulsa "Cargar y Analizar"</div>
+    <div id="status-bar">Listo — pulsa "Cargar y Analizar"</div>
 
-<div class="legend">
-    <span class="legend-item">
-        <span class="legend-dot" style="background:var(--ok-bg);border-color:var(--ok-border)"></span> Procesado
-    </span>
-    <span class="legend-item">
-        <span class="legend-dot" style="background:var(--struct-bg);border-color:var(--struct-border)"></span> Estructural
-    </span>
-    <span class="legend-item">
-        <span class="legend-dot" style="background:var(--err-bg);border-color:var(--err-border)"></span> Error
-    </span>
-    <span class="legend-item">
-        <span class="legend-dot" style="background:var(--gray-bg);border-color:var(--gray-border)"></span> Sin procesar (tras error)
-    </span>
-</div>
+    <div class="legend">
+        <span class="legend-item">
+            <span class="legend-dot" style="background:var(--ok-bg);border-color:var(--ok-border)"></span> Procesado
+        </span>
+        <span class="legend-item">
+            <span class="legend-dot" style="background:var(--struct-bg);border-color:var(--struct-border)"></span>
+            Estructural
+        </span>
+        <span class="legend-item">
+            <span class="legend-dot" style="background:var(--err-bg);border-color:var(--err-border)"></span> Error
+        </span>
+        <span class="legend-item">
+            <span class="legend-dot" style="background:var(--gray-bg);border-color:var(--gray-border)"></span> Sin
+            procesar (tras error)
+        </span>
+    </div>
 
-<div id="visualizador"></div>
-<div id="error-banner" class="error-banner" style="display:none">
-    <span class="icon">⛔</span>
-    <span id="error-msg"></span>
-</div>
+    <div id="visualizador"></div>
+    <div id="error-banner" class="error-banner" style="display:none">
+        <span class="icon">⛔</span>
+        <span id="error-msg"></span>
+    </div>
 
-<script>
-    let animating = false;
+    <script>
+        let animating = false;
 
-    function getDelay() {
-        const v = parseInt(document.getElementById('speed').value);
-        // speed 1 → 700ms, speed 10 → 60ms
-        return Math.round(700 - (v - 1) * (640 / 9));
-    }
+        function getDelay() {
+            const v = parseInt(document.getElementById('speed').value);
+            return Math.round(700 - (v - 1) * (640 / 9));
+        }
 
-    function resetVista() {
-        animating = false;
-        document.getElementById('visualizador').innerHTML = '';
-        const banner = document.getElementById('error-banner');
-        banner.style.display = 'none';
-        banner.classList.remove('visible');
-        setStatus('Listo — pulsa "Cargar y Analizar"', '');
-        document.getElementById('btn-load').disabled = false;
-        document.getElementById('btn-reset').disabled = true;
-    }
+        function resetVista() {
+            animating = false;
+            document.getElementById('visualizador').innerHTML = '';
+            const banner = document.getElementById('error-banner');
+            banner.style.display = 'none';
+            banner.classList.remove('visible');
+            setStatus('Listo — pulsa "Cargar y Analizar"', '');
+            document.getElementById('btn-load').disabled = false;
+            document.getElementById('btn-reset').disabled = true;
+        }
 
-    function setStatus(msg, cls) {
-        const el = document.getElementById('status-bar');
-        el.textContent = msg;
-        el.className = cls;
-    }
+        function setStatus(msg, cls) {
+            const el = document.getElementById('status-bar');
+            el.textContent = msg;
+            el.className = cls;
+        }
 
-    async function iniciarAnalisis() {
-        if (animating) return;
-        animating = true;
-        document.getElementById('btn-load').disabled = true;
-        document.getElementById('btn-reset').disabled = false;
-        document.getElementById('visualizador').innerHTML = '';
-        document.getElementById('error-banner').style.display = 'none';
+        async function iniciarAnalisis() {
+            if (animating) return;
+            animating = true;
+            document.getElementById('btn-load').disabled = true;
+            document.getElementById('btn-reset').disabled = false;
+            document.getElementById('visualizador').innerHTML = '';
+            document.getElementById('error-banner').style.display = 'none';
 
-        let tokens;
-        try {
-            const r = await fetch('reporte_tokens.json?_=' + Date.now());
-            tokens = await r.json();
-        } catch (e) {
-            setStatus('⚠ No se pudo cargar reporte_tokens.json', 'done-err');
+            let tokens;
+            try {
+                const r = await fetch('reporte_tokens.json?_=' + Date.now());
+                tokens = await r.json();
+            } catch (e) {
+                setStatus('⚠ No se pudo cargar reporte_tokens.json', 'done-err');
+                animating = false;
+                document.getElementById('btn-load').disabled = false;
+                return;
+            }
+
+            const lineMap = new Map();
+            for (const t of tokens) {
+                if (!lineMap.has(t.linea)) lineMap.set(t.linea, []);
+                lineMap.get(t.linea).push(t);
+            }
+
+            const hasError = tokens.some(t => t.categoria === 'error');
+
+            const container = document.getElementById('visualizador');
+
+            const chips = [];
+
+            for (const [lineNum, lineTokens] of lineMap) {
+                const row = document.createElement('div');
+                row.className = 'line-row';
+
+                const numEl = document.createElement('div');
+                numEl.className = 'line-num';
+                numEl.textContent = lineNum;
+                row.appendChild(numEl);
+
+                const tokensEl = document.createElement('div');
+                tokensEl.className = 'line-tokens';
+
+                for (const t of lineTokens) {
+                    const chip = document.createElement('div');
+
+                    const isError = t.categoria === 'error';
+                    const isUnprocessed = t.categoria === 'unprocessed';
+
+                    let chipClass = 'token-chip ';
+                    if (isUnprocessed) chipClass += 'chip-unprocessed';
+                    else if (isError) chipClass += 'chip-error';
+                    else chipClass += 'chip-' + t.categoria;
+
+                    chip.className = chipClass;
+
+                    const lexemaEl = document.createElement('span');
+                    lexemaEl.className = 'chip-token';
+                    lexemaEl.textContent = t.lexema;
+                    chip.appendChild(lexemaEl);
+
+                    const tokenEl = document.createElement('span');
+                    tokenEl.className = 'chip-lexema';
+                    tokenEl.textContent = isError ? 'error' : isUnprocessed ? 'sin procesar' : t.token;
+                    chip.appendChild(tokenEl);
+
+                    tokensEl.appendChild(chip);
+                    chips.push({ chip, isError, isUnprocessed, t });
+                }
+
+                row.appendChild(tokensEl);
+                container.appendChild(row);
+            }
+
+            setStatus('', 'running');
+            updateStatusRunning(0, chips.length);
+
+            for (let i = 0; i < chips.length; i++) {
+                if (!animating) break;
+
+                const { chip, isError, isUnprocessed } = chips[i];
+
+                if (isUnprocessed) {
+                    for (let j = i; j < chips.length; j++) {
+                        chips[j].chip.classList.add('visible');
+                    }
+                    break;
+                }
+
+                chip.classList.add('visible');
+                updateStatusRunning(i + 1, chips.length);
+                await sleep(getDelay());
+
+                if (isError) {
+                    await sleep(getDelay() * 2);
+                    for (let j = i + 1; j < chips.length; j++) {
+                        chips[j].chip.classList.add('visible');
+                    }
+                    break;
+                }
+            }
+
+            if (!animating) return;
+
+            const errToken = tokens.find(t => t.categoria === 'error');
+            if (errToken) {
+                setStatus(`Error sintáctico detectado en la línea ${errToken.linea}`, 'done-err');
+                showErrorBanner(errToken);
+            } else {
+                setStatus(`✔ Análisis completo — ${tokens.length} tokens procesados correctamente`, 'done-ok');
+            }
+
             animating = false;
             document.getElementById('btn-load').disabled = false;
-            return;
         }
 
-        // ── Agrupar tokens por línea ──
-        const lineMap = new Map(); // lineNum → [token objects]
-        for (const t of tokens) {
-            if (!lineMap.has(t.linea)) lineMap.set(t.linea, []);
-            lineMap.get(t.linea).push(t);
+        function updateStatusRunning(current, total) {
+            const el = document.getElementById('status-bar');
+            el.innerHTML = `<span class="spinner"></span> Analizando token ${current} de ${total}…`;
+            el.className = 'running';
         }
 
-        // Encontrar si hay un error
-        const hasError = tokens.some(t => t.categoria === 'error');
+        function showErrorBanner(errToken) {
+            const banner = document.getElementById('error-banner');
+            const msg = document.getElementById('error-msg');
 
-        const container = document.getElementById('visualizador');
+            let customMsg = errToken.mensaje || "";
 
-        // ── Construir DOM de líneas y chips (todos ocultos) ──
-        const chips = []; // lista plana en orden de animación
-
-        for (const [lineNum, lineTokens] of lineMap) {
-            const row = document.createElement('div');
-            row.className = 'line-row';
-
-            const numEl = document.createElement('div');
-            numEl.className = 'line-num';
-            numEl.textContent = lineNum;
-            row.appendChild(numEl);
-
-            const tokensEl = document.createElement('div');
-            tokensEl.className = 'line-tokens';
-
-            for (const t of lineTokens) {
-                const chip = document.createElement('div');
-
-                const isError       = t.categoria === 'error';
-                const isUnprocessed = t.categoria === 'unprocessed';
-
-                let chipClass = 'token-chip ';
-                if (isUnprocessed)  chipClass += 'chip-unprocessed';
-                else if (isError)   chipClass += 'chip-error';
-                else                chipClass += 'chip-' + t.categoria;
-
-                chip.className = chipClass;
-
-                // Arriba: lexema real (el texto del archivo)
-                const lexemaEl = document.createElement('span');
-                lexemaEl.className = 'chip-token';
-                lexemaEl.textContent = t.lexema;
-                chip.appendChild(lexemaEl);
-
-                // Abajo: tipo de token (KEY, STRING, LBRACE, etc.)
-                const tokenEl = document.createElement('span');
-                tokenEl.className = 'chip-lexema';
-                tokenEl.textContent = isError ? 'error' : isUnprocessed ? 'sin procesar' : t.token;
-                chip.appendChild(tokenEl);
-
-                tokensEl.appendChild(chip);
-                chips.push({ chip, isError, isUnprocessed, t });
+            if (customMsg.includes("$undefined") || customMsg === "") {
+                customMsg = `El token procesado ('${errToken.lexema}') no es válido y no está presente en ninguna expresión regular de la gramática del lexer.`;
+            } else {
+                customMsg = customMsg.replace("syntax error, unexpected", "Error sintáctico: inesperado");
+                customMsg = customMsg.replace("expecting", "se esperaba");
+                customMsg = customMsg.replace(/ or /g, " o ");
+                customMsg = customMsg.replace(/$end/, "fin de archivo");
             }
 
-            row.appendChild(tokensEl);
-            container.appendChild(row);
+            msg.textContent = `Error en línea ${errToken.linea}: ${customMsg}`;
+            banner.style.display = 'flex';
+            requestAnimationFrame(() => banner.classList.add('visible'));
         }
 
-        // ── Animar token por token ──
-        setStatus('', 'running');
-        updateStatusRunning(0, chips.length);
-
-        for (let i = 0; i < chips.length; i++) {
-            if (!animating) break;
-
-            const { chip, isError, isUnprocessed } = chips[i];
-
-            if (isUnprocessed) {
-                // Mostrar TODOS los unprocessed de golpe sin animación individual
-                for (let j = i; j < chips.length; j++) {
-                    chips[j].chip.classList.add('visible');
-                }
-                break;
-            }
-
-            chip.classList.add('visible');
-            updateStatusRunning(i + 1, chips.length);
-            await sleep(getDelay());
-
-            if (isError) {
-                // Tras mostrar el error, mostrar todos los restantes de golpe
-                await sleep(getDelay() * 2);
-                for (let j = i + 1; j < chips.length; j++) {
-                    chips[j].chip.classList.add('visible');
-                }
-                break;
-            }
+        function sleep(ms) {
+            return new Promise(r => setTimeout(r, ms));
         }
-
-        if (!animating) return;
-
-        // ── Estado final ──
-        const errToken = tokens.find(t => t.categoria === 'error');
-        if (errToken) {
-            setStatus(`Error sintáctico detectado en la línea ${errToken.linea}`, 'done-err');
-            showErrorBanner(errToken);
-        } else {
-            setStatus(`✔ Análisis completo — ${tokens.length} tokens procesados correctamente`, 'done-ok');
-        }
-
-        animating = false;
-        document.getElementById('btn-load').disabled = false;
-    }
-
-    function updateStatusRunning(current, total) {
-        const el = document.getElementById('status-bar');
-        el.innerHTML = `<span class="spinner"></span> Analizando token ${current} de ${total}…`;
-        el.className = 'running';
-    }
-
-    function showErrorBanner(errToken) {
-        const banner = document.getElementById('error-banner');
-        const msg    = document.getElementById('error-msg');
-        
-        let customMsg = errToken.mensaje || "";
-        
-        // Personalizar mensajes de error según lo solicitado
-        if (customMsg.includes("$undefined") || customMsg === "") {
-            // Error léxico (como la comilla simple)
-            customMsg = `El token procesado ('${errToken.lexema}') no es válido y no está presente en ninguna expresión regular de la gramática del lexer.`;
-        } else {
-            // Traducir error sintáctico detallado de Bison (ej. falta de coma)
-            customMsg = customMsg.replace("syntax error, unexpected", "Error sintáctico: inesperado");
-            customMsg = customMsg.replace("expecting", "se esperaba");
-            customMsg = customMsg.replace(/ or /g, " o ");
-            customMsg = customMsg.replace(/$end/, "fin de archivo");
-        }
-
-        msg.textContent = `Error en línea ${errToken.linea}: ${customMsg}`;
-        banner.style.display = 'flex';
-        requestAnimationFrame(() => banner.classList.add('visible'));
-    }
-
-    function sleep(ms) {
-        return new Promise(r => setTimeout(r, ms));
-    }
-</script>
+    </script>
 </body>
+
 </html>

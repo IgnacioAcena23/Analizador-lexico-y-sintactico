@@ -2,7 +2,6 @@
 #include "parser.tab.h"
 #include <string.h>
 
-/* Captura el número de línea en el momento exacto de leer cada token */
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 %}
 
