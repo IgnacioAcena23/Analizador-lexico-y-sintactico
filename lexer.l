@@ -3,6 +3,8 @@
 #include <string.h>
 
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
+
+extern void yyerror_lexico(int linea, const char* lexema);
 %}
 
 %option noyywrap
@@ -25,6 +27,6 @@
 
 [ \t\r\n]+  { /* Ignorar espacios y saltos de línea */ }
 
-.           { return -1; }
+.           { yyerror_lexico(yylineno, yytext); return -1; }
 
 %%

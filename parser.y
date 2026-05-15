@@ -93,13 +93,37 @@ valor:
 %%
 
 int had_error = 0;
+int error_lexico_encontrado = 0;
+
+void yyerror_lexico(int linea, const char *lexema) {
+    char err_lex[256];
+    int j = 0;
+    for (int i = 0; lexema[i] && j < 250; i++) {
+        if (lexema[i] == '"' || lexema[i] == '\\') err_lex[j++] = '\\';
+        else if (lexema[i] == '\n') { err_lex[j++] = '\\'; err_lex[j++] = 'n'; continue; }
+        else if (lexema[i] == '\r') { err_lex[j++] = '\\'; err_lex[j++] = 'r'; continue; }
+        err_lex[j++] = lexema[i];
+    }
+    err_lex[j] = '\0';
+
+    if (!first_token) fprintf(json_log, ",\n");
+    fprintf(json_log, "  {\"linea\": %d, \"categoria\": \"error\", \"tipo_error\": \"lexico\", \"token\": \"ERROR_LEXICO\", \"lexema\": \"%s\", \"mensaje\": \"Carácter no definido mediante expresiones regulares.\"}",
+            linea, err_lex);
+    first_token = 0;
+    had_error = 1;
+    error_lexico_encontrado = 1;
+}
 
 void yyerror(const char *s) {
+    if (error_lexico_encontrado) return;
+
     /* Escapar yytext para mostrarlo en el JSON */
     char err_lex[256];
     int j = 0;
     for (int i = 0; yytext[i] && j < 250; i++) {
         if (yytext[i] == '"' || yytext[i] == '\\') err_lex[j++] = '\\';
+        else if (yytext[i] == '\n') { err_lex[j++] = '\\'; err_lex[j++] = 'n'; continue; }
+        else if (yytext[i] == '\r') { err_lex[j++] = '\\'; err_lex[j++] = 'r'; continue; }
         err_lex[j++] = yytext[i];
     }
     err_lex[j] = '\0';
@@ -113,7 +137,7 @@ void yyerror(const char *s) {
     err_msg[j] = '\0';
 
     if (!first_token) fprintf(json_log, ",\n");
-    fprintf(json_log, "  {\"linea\": %d, \"categoria\": \"error\", \"token\": \"SYNTAX_ERROR\", \"lexema\": \"%s\", \"mensaje\": \"%s\"}",
+    fprintf(json_log, "  {\"linea\": %d, \"categoria\": \"error\", \"tipo_error\": \"sintactico\", \"token\": \"ERROR_SINTACTICO\", \"lexema\": \"%s\", \"mensaje\": \"%s\"}",
             yylloc.first_line, err_lex, err_msg);
     first_token = 0;
     had_error = 1;

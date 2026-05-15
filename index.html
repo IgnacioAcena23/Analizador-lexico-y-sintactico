@@ -338,6 +338,7 @@
         </span>
         <span class="legend-item">
             <span class="legend-dot" style="background:var(--err-bg);border-color:var(--err-border)"></span> Error
+            (Léxico / Sintáctico)
         </span>
         <span class="legend-item">
             <span class="legend-dot" style="background:var(--gray-bg);border-color:var(--gray-border)"></span> Sin
@@ -439,7 +440,11 @@
 
                     const tokenEl = document.createElement('span');
                     tokenEl.className = 'chip-lexema';
-                    tokenEl.textContent = isError ? 'error' : isUnprocessed ? 'sin procesar' : t.token;
+                    if (isError) {
+                        tokenEl.textContent = t.tipo_error === 'lexico' ? 'error léxico' : 'error sintáctico';
+                    } else {
+                        tokenEl.textContent = isUnprocessed ? 'sin procesar' : t.token;
+                    }
                     chip.appendChild(tokenEl);
 
                     tokensEl.appendChild(chip);
@@ -482,7 +487,8 @@
 
             const errToken = tokens.find(t => t.categoria === 'error');
             if (errToken) {
-                setStatus(`Error sintáctico detectado en la línea ${errToken.linea}`, 'done-err');
+                const tipoStr = errToken.tipo_error === 'lexico' ? 'léxico' : 'sintáctico';
+                setStatus(`Error ${tipoStr} detectado en la línea ${errToken.linea}`, 'done-err');
                 showErrorBanner(errToken);
             } else {
                 setStatus(`✔ Análisis completo — ${tokens.length} tokens procesados correctamente`, 'done-ok');
@@ -504,16 +510,18 @@
 
             let customMsg = errToken.mensaje || "";
 
-            if (customMsg.includes("$undefined") || customMsg === "") {
-                customMsg = `El token procesado ('${errToken.lexema}') no es válido y no está presente en ninguna expresión regular de la gramática del lexer.`;
+            if (errToken.tipo_error === 'lexico') {
+                customMsg = `El carácter procesado ( ${errToken.lexema} ) no es válido y no está definido mediante expresiones regulares.`;
             } else {
-                customMsg = customMsg.replace("syntax error, unexpected", "Error sintáctico: inesperado");
+                customMsg = customMsg.replace("syntax error, unexpected", "inesperado");
                 customMsg = customMsg.replace("expecting", "se esperaba");
                 customMsg = customMsg.replace(/ or /g, " o ");
-                customMsg = customMsg.replace(/$end/, "fin de archivo");
+                customMsg = customMsg.replace(/\$end/, "fin de archivo");
+                customMsg = `Error sintáctico: ${customMsg}`;
             }
 
-            msg.textContent = `Error en línea ${errToken.linea}: ${customMsg}`;
+            const tipoErrorStr = errToken.tipo_error === 'lexico' ? 'Error Léxico' : 'Error Sintáctico';
+            msg.textContent = `[${tipoErrorStr}] en línea ${errToken.linea}: ${customMsg}`;
             banner.style.display = 'flex';
             requestAnimationFrame(() => banner.classList.add('visible'));
         }
